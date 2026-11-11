@@ -1,12 +1,15 @@
 import "server-only";
+import nodemailer from "nodemailer";
 import type { ContactData } from "./validation";
 
 /**
  * Delivery for project inquiries.
  *
- * Supported providers (configure ONE in .env.local):
+ * Supported providers (configure ONE in .env.local; if several are set the order is 1, 2, 3):
  *   1. Resend email API  — RESEND_API_KEY + CONTACT_TO_EMAIL (+ CONTACT_FROM_EMAIL)
- *   2. Generic webhook   — CONTACT_WEBHOOK_URL (+ optional CONTACT_WEBHOOK_SECRET)
+ *   2. SMTP (nodemailer) — SMTP_USER + SMTP_PASS + CONTACT_TO_EMAIL (+ SMTP_HOST, SMTP_PORT,
+ *      CONTACT_FROM_EMAIL). Defaults to Gmail (smtp.gmail.com:465) with an App Password.
+ *   3. Generic webhook   — CONTACT_WEBHOOK_URL (+ optional CONTACT_WEBHOOK_SECRET)
  *      Works with n8n, Make, Zapier, GoHighLevel inbound webhooks, or your own CRM endpoint.
  *      The URL must be https (plain http is accepted only for localhost test receivers).
  *
@@ -15,10 +18,11 @@ import type { ContactData } from "./validation";
  * confirmed acceptance with a 2xx response.
  *
  * Logging policy: only the provider name, an HTTP status code or an error class
- * name is ever logged. Request bodies, names, emails, messages and secrets are never logged.
+ * name (and a short error code such as EAUTH) is ever logged. Request bodies, names, emails,
+ * messages, SMTP responses and secrets are never logged.
  */
 
-export type DeliveryProvider = "resend" | "webhook" | "none";
+export type DeliveryProvider = "resend" | "smtp" | "webhook" | "none";
 
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
@@ -36,6 +40,7 @@ export function isAllowedWebhookUrl(raw: string | undefined): boolean {
 
 export function getDeliveryProvider(env: NodeJS.ProcessEnv = process.env): DeliveryProvider {
   if (env.RESEND_API_KEY && env.CONTACT_TO_EMAIL) return "resend";
+  if (env.SMTP_USER && env.SMTP_PASS && env.CONTACT_TO_EMAIL) return "smtp";
   if (isAllowedWebhookUrl(env.CONTACT_WEBHOOK_URL)) return "webhook";
   return "none";
 }
@@ -68,12 +73,38 @@ function accepted(provider: DeliveryProvider, res: Response): DeliveryResult {
   return { ok: false, reason: "delivery_failed" };
 }
 
-async function sendWithResend(data: ContactData, env: NodeJS.ProcessEnv): Promise<DeliveryResult> {
+/** Plain-text and HTML bodies. Every visitor-supplied value is escaped in the HTML version. */
+function buildEmailBody(data: ContactData) {
   const rows = toRows(data);
   const html = `<h2>New project inquiry</h2><table cellpadding="6">${rows
     .map(([k, v]) => `<tr><td><strong>${escapeHtml(k)}</strong></td><td>${escapeHtml(v).replace(/\n/g, "<br>")}</td></tr>`)
     .join("")}</table>`;
   const text = rows.map(([k, v]) => `${k}: ${v}`).join("\n");
+  return { html, text };
+}
+
+/** Header values must be a single line: strip CR/LF so a visitor cannot inject extra headers. */
+function oneLine(value: string) {
+  return value.replace(/[\r\n]+/g, " ").trim();
+}
+
+function splitRecipients(value: string) {
+  return value
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function withTimeout<T>(work: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(Object.assign(new Error("timeout"), { name: "TimeoutError" })), ms);
+  });
+  return Promise.race([work, timeout]).finally(() => clearTimeout(timer));
+}
+
+async function sendWithResend(data: ContactData, env: NodeJS.ProcessEnv): Promise<DeliveryResult> {
+  const { html, text } = buildEmailBody(data);
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -94,6 +125,48 @@ async function sendWithResend(data: ContactData, env: NodeJS.ProcessEnv): Promis
     signal: AbortSignal.timeout(DELIVERY_TIMEOUT_MS),
   });
   return accepted("resend", res);
+}
+
+/**
+ * SMTP through nodemailer. Counts as delivered only when the SMTP server accepted the message for
+ * every recipient (no rejected addresses). Gmail: use an App Password, never the account password.
+ */
+async function sendWithSmtp(data: ContactData, env: NodeJS.ProcessEnv): Promise<DeliveryResult> {
+  const { html, text } = buildEmailBody(data);
+  const port = Number(env.SMTP_PORT) || 465;
+  const recipients = splitRecipients(env.CONTACT_TO_EMAIL!);
+  const transport = nodemailer.createTransport({
+    host: env.SMTP_HOST?.trim() || "smtp.gmail.com",
+    port,
+    // 465 uses TLS from the first byte; any other port must upgrade with STARTTLS or the send fails.
+    secure: port === 465,
+    requireTLS: port !== 465,
+    auth: { user: env.SMTP_USER, pass: env.SMTP_PASS },
+    connectionTimeout: DELIVERY_TIMEOUT_MS,
+    greetingTimeout: DELIVERY_TIMEOUT_MS,
+    socketTimeout: DELIVERY_TIMEOUT_MS,
+    // The message body never needs to read local files or fetch remote URLs.
+    disableFileAccess: true,
+    disableUrlAccess: true,
+  });
+  try {
+    const info = await withTimeout(
+      transport.sendMail({
+        from: env.CONTACT_FROM_EMAIL || env.SMTP_USER,
+        to: recipients,
+        replyTo: data.email,
+        subject: oneLine(`New inquiry: ${data.service} — ${data.fullName}`),
+        text,
+        html,
+      }),
+      DELIVERY_TIMEOUT_MS,
+    );
+    if (info.accepted.length > 0 && info.rejected.length === 0) return { ok: true };
+    console.error("[contact] SMTP server did not accept every recipient", { provider: "smtp" });
+    return { ok: false, reason: "delivery_failed" };
+  } finally {
+    transport.close();
+  }
 }
 
 async function sendToWebhook(data: ContactData, env: NodeJS.ProcessEnv): Promise<DeliveryResult> {
@@ -124,11 +197,16 @@ export async function deliverInquiry(data: ContactData, env: NodeJS.ProcessEnv =
     return { ok: false, reason: "not_configured" };
   }
   try {
-    return provider === "resend" ? await sendWithResend(data, env) : await sendToWebhook(data, env);
+    if (provider === "resend") return await sendWithResend(data, env);
+    if (provider === "smtp") return await sendWithSmtp(data, env);
+    return await sendToWebhook(data, env);
   } catch (error) {
-    // Timeouts, DNS and TLS failures. Log only the error class — never the payload (personal data).
+    // Timeouts, DNS, TLS and login failures. Log only the error class and a short code such as
+    // EAUTH — never the message, which can echo server responses or addresses (personal data).
     const name = typeof (error as { name?: unknown } | null)?.name === "string" ? (error as { name: string }).name : "unknown";
-    console.error("[contact] Delivery request failed", { provider, error: name });
+    const rawCode = (error as { code?: unknown } | null)?.code;
+    const code = typeof rawCode === "string" && /^[A-Z0-9_]{2,24}$/.test(rawCode) ? rawCode : undefined;
+    console.error("[contact] Delivery request failed", { provider, error: name, ...(code ? { code } : {}) });
     return { ok: false, reason: "delivery_failed" };
   }
 }

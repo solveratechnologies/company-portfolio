@@ -11,7 +11,7 @@ export type IndustryCard = { slug: string; name: string; summary: string };
 
 const industryPhotos: Record<string, { src: string; alt: string }> = {
   "ecommerce-retail": { src: "/images/industries/ecommerce-retail.jpg", alt: "A sunlit retail counter with folded clothing and a laptop" },
-  "restaurants-hospitality": { src: "/images/industries/restaurants-hospitality.jpg", alt: "A bright restaurant dining room set for guests" },
+  "restaurants-hospitality": { src: "/images/industries/restaurants-hospitality.jpg", alt: "Round marble tables set with glasses and dark plates in a softly lit modern restaurant" },
   "professional-services": { src: "/images/industries/professional-services.jpg", alt: "A quiet advisory desk with a notebook and laptop" },
   "real-estate": { src: "/images/industries/real-estate.jpg", alt: "A bright apartment interior with house keys on a table" },
   healthcare: { src: "/images/industries/healthcare.jpg", alt: "A calm clinic reception with soft seating" },
@@ -30,14 +30,14 @@ function IndustryScrollCard({ industry }: { industry: IndustryCard }) {
     <li data-card className="origin-center">
       <Link
         href={`/industries#${industry.slug}`}
-        className="flex h-[152px] flex-col rounded-[var(--radius-card)] border border-line bg-white p-4 shadow-[0_18px_40px_-30px_rgb(16_24_32/0.45)]"
+        className="flex h-[168px] flex-col rounded-[var(--radius-card)] border border-line bg-white p-4 shadow-[0_18px_40px_-30px_rgb(16_24_32/0.45)]"
       >
         <div className="flex items-center justify-between">
           <Icon aria-hidden className="size-5 text-brand" />
           <ArrowUpRight aria-hidden className="size-3.5 text-ink/25" />
         </div>
         <h3 className="mt-2.5 text-[0.95rem] font-semibold leading-snug">{industry.name}</h3>
-        <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-muted">{industry.summary}</p>
+        <p className="mt-1 line-clamp-3 text-sm leading-relaxed text-muted">{industry.summary}</p>
       </Link>
     </li>
   );
@@ -144,10 +144,10 @@ export function IndustriesGrid({ industries }: { industries: IndustryCard[] }) {
           <div className="grid h-full min-h-0 items-stretch gap-8 md:grid-cols-2 md:gap-10 lg:gap-14">
             <div className="flex min-h-0 flex-col">
               <h2 id="industries-title" className="text-heading font-semibold text-ink">
-                Industries we Support
+                Industries We Support
               </h2>
               <p className="mt-4 max-w-md leading-relaxed text-muted">
-                Practical technology for the way each sector works — its customers, its workflows, and the priorities that come with them.
+                Practical technology for the way each sector works: its customers, its workflows, and the priorities that come with them.
               </p>
               <div
                 ref={frameRef}

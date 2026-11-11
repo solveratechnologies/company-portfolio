@@ -5,11 +5,11 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ButtonLink } from "@/components/ui/Button";
 
 const steps: WorkflowStep[] = [
-  { title: "Form Submission", description: "A prospect submits an inquiry on your website.", icon: ClipboardList, kind: "trigger" },
-  { title: "AI Classification", description: "The request is categorized by service, urgency and fit.", icon: Brain, kind: "ai" },
-  { title: "CRM Update", description: "A contact and deal are created and assigned to the right person.", icon: Users, kind: "action" },
-  { title: "Follow-up Message", description: "A tailored acknowledgment is sent, with a booking link.", icon: MessageSquareText, kind: "action" },
-  { title: "Reporting Dashboard", description: "Volumes, sources and response times update automatically.", icon: BarChart3, kind: "action" },
+  { title: "New Inquiry", description: "A prospect contacts you through your website, app or WhatsApp.", icon: ClipboardList, kind: "trigger" },
+  { title: "Smart Classification", description: "AI sorts the request by service, urgency and fit, and flags anything unusual for a person.", icon: Brain, kind: "ai" },
+  { title: "CRM Update", description: "A contact and deal are created and assigned to the right team member.", icon: Users, kind: "action" },
+  { title: "Personal Follow-up", description: "A tailored reply goes out within minutes, with a booking link.", icon: MessageSquareText, kind: "action" },
+  { title: "Live Reporting", description: "Volumes, sources and response times update on your dashboard automatically.", icon: BarChart3, kind: "action" },
 ];
 
 export function AutomationSpotlight() {
@@ -20,14 +20,17 @@ export function AutomationSpotlight() {
       <Container className="relative">
         <SectionHeading
           tone="dark"
-          eyebrow="AI & automation"
+          eyebrow="AI & Automation"
           id="automation-spotlight-title"
-          title="One inquiry. Five connected steps. No manual handoffs."
-          description="An example of how an intelligent workflow connects the systems you already use — with people stepping in where judgement is needed."
+          title="One Inquiry. Five Connected Steps. No Manual Handoffs."
+          description="An example of how an intelligent workflow connects the systems you already use, with people stepping in where judgement is needed."
         />
         <div className="mt-16 rounded-[1.75rem] border border-white/10 bg-white/[0.02] p-6 md:p-10">
-          <WorkflowDiagram steps={steps} label="Example workflow from form submission to reporting" />
+          <WorkflowDiagram steps={steps} label="Example workflow from new inquiry to live reporting" />
         </div>
+        <p data-reveal className="mt-6 text-sm italic text-white/70">
+          Most teams start with one workflow, prove the time saved, then expand.
+        </p>
         <div data-reveal className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
           <p className="text-sm font-medium text-white/70">Explore AI &amp; Automation:</p>
           <div className="flex flex-wrap gap-3">

@@ -6,6 +6,117 @@ import type { Article, ArticleBlock, ArticleCategory } from "@/types/article";
  * Article JSON-LD will then appear automatically.
  */
 export const articles: Article[] = [
+  // DRAFT: the three articles below were written for the home-page Insights cards. They carry no
+  // publication date and should be reviewed (and dated) by the Solvera team before launch.
+  {
+    slug: "native-or-cross-platform-mobile-apps",
+    title: "Native or Cross-Platform? Choosing the Right Approach for Your Mobile App",
+    seoTitle: "Native or Cross-Platform Mobile Apps",
+    excerpt:
+      "Swift, Kotlin, React Native or Flutter? A plain-English guide to cost, speed, performance and long-term maintenance.",
+    category: "App Development",
+    author: "Solvera Technologies",
+    cover: { tone: "brand", motif: "grid" },
+    body: [
+      { type: "p", text: "Before anyone writes a line of code for a mobile app, there is a decision that shapes cost, timeline and maintenance for years: build separate native apps for iPhone and Android, or build once with a cross-platform framework. Neither is simply better. The right answer depends on what the app has to do and how your business will run it." },
+      { type: "h2", id: "the-two-approaches", text: "The two approaches in plain English" },
+      { type: "ul", items: [
+        "Native: separate apps for each platform, usually written in Swift for iOS and Kotlin for Android. Each app uses the tools Apple and Google provide directly.",
+        "Cross-platform: one shared codebase that runs on both platforms, with frameworks such as React Native or Flutter. Parts of the app can still use native features where needed.",
+      ] },
+      { type: "h2", id: "when-cross-platform-fits", text: "When cross-platform usually fits" },
+      { type: "p", text: "For many business apps, such as booking, ordering, customer accounts, content, forms and dashboards, a cross-platform approach is a sensible default. One team builds and maintains one codebase, features reach both platforms together, and a fix is made once rather than twice." },
+      { type: "h2", id: "when-native-fits", text: "When native is worth the extra effort" },
+      { type: "p", text: "Native development tends to make sense when the app depends heavily on the newest platform features, demanding graphics or animation, intensive use of the camera or sensors, or very close integration with the operating system. It can also be the right choice when you only need to serve one platform at first." },
+      { type: "callout", title: "Ask what the app must do on day one", text: "List the three or four things the app absolutely has to do well. If none of them needs deep access to the device, cross-platform is usually worth a serious look. If one of them does, test that feature early before committing." },
+      { type: "h2", id: "cost-and-speed", text: "Cost and speed" },
+      { type: "p", text: "Sharing a codebase generally reduces the amount of work to design, build and test, which can shorten the timeline and lower the initial cost. Two native apps mean two builds and two sets of fixes. The saving is rarely a clean half, because each platform still needs its own testing, store setup and polish, so ask for an estimate that shows the work for both options." },
+      { type: "h2", id: "performance-and-feel", text: "Performance and feel" },
+      { type: "p", text: "Modern cross-platform frameworks perform well for most business apps. Users notice slow screens, confusing navigation and buggy forms far more than the framework underneath. Whichever route you choose, judge the result on a real phone, with realistic data and a typical connection." },
+      { type: "h2", id: "maintenance", text: "Long-term maintenance" },
+      { type: "p", text: "Phones and operating systems change every year. Plan for ongoing updates, store requirements, security fixes and framework upgrades, whichever approach you pick. Ask who will maintain the app after launch, how updates are tested and released, and who owns the code and the developer accounts." },
+      { type: "h2", id: "how-to-decide", text: "A simple way to decide" },
+      { type: "ol", items: [
+        "Write down the core features and which devices your customers actually use.",
+        "Flag any feature that needs deep device access or top-tier performance.",
+        "Compare estimates for both approaches, including testing and ongoing maintenance.",
+        "Prototype the riskiest feature before committing to the full build.",
+      ] },
+    ],
+  },
+  {
+    slug: "where-ai-agents-help-small-business",
+    title: "Where AI Agents Actually Help a Small Business, and Where They Don't",
+    seoTitle: "Where AI Agents Help a Small Business",
+    excerpt:
+      "Start narrow, keep people in the loop and measure the hours saved. A grounded way to adopt AI without wasted spend.",
+    category: "AI",
+    author: "Solvera Technologies",
+    cover: { tone: "mint", motif: "nodes" },
+    body: [
+      { type: "p", text: "An AI agent is software that can take a request, decide on a few steps and act, for example by looking something up, drafting a reply or updating a record. That can save a small team real time. It can also create new problems when it is pointed at the wrong job. The useful question is not whether to use AI, but which job to hand it first." },
+      { type: "h2", id: "where-agents-help", text: "Where agents tend to help" },
+      { type: "ul", items: [
+        "Answering common customer questions from your own approved help content",
+        "Sorting and routing incoming enquiries by topic and urgency",
+        "Drafting replies, summaries and follow-ups for a person to review",
+        "Pulling details out of documents such as invoices, forms and emails",
+        "Searching internal documents and policies in plain language",
+      ] },
+      { type: "p", text: "These jobs are repetitive, the right answer can be checked, and a mistake is easy to catch and fix." },
+      { type: "h2", id: "where-they-dont", text: "Where they usually do not" },
+      { type: "ul", items: [
+        "Decisions with legal, financial or safety consequences that nobody reviews",
+        "Anything that needs facts your business has not written down anywhere",
+        "Sensitive conversations where a customer needs a person",
+        "Processes that change every week, or that nobody can describe clearly",
+      ] },
+      { type: "callout", title: "Keep people in the loop", text: "Decide up front what the agent may do alone, what needs approval, and when it must hand over to a person. Write these rules down and test them with real examples." },
+      { type: "h2", id: "start-narrow", text: "Start narrow" },
+      { type: "p", text: "Pick one job with a clear beginning and end, such as answering the ten questions your team gets asked most often. A narrow first project is faster to build, easier to test and easier to judge. Once it works, expanding to a second job is a much smaller step." },
+      { type: "h2", id: "measure-the-hours", text: "Measure the hours saved" },
+      { type: "p", text: "Before you build, note how long the task takes today and how often it goes wrong. After launch, measure the same things, and also track how often a person has to correct or take over from the agent. If the numbers do not improve, adjust the scope or stop, rather than adding more AI." },
+      { type: "h2", id: "avoid-wasted-spend", text: "Avoiding wasted spend" },
+      { type: "ul", items: [
+        "Check what data would be sent to a provider and whether it contains personal or confidential details.",
+        "Prefer a small pilot with a clear end date over a long open-ended project.",
+        "Ask what ongoing running costs and maintenance look like once it is live.",
+        "Make sure you own the prompts, workflows and accounts, so you are not locked in.",
+      ] },
+    ],
+  },
+  {
+    slug: "five-processes-to-automate-first",
+    title: "5 Processes Every Growing Business Should Automate First",
+    seoTitle: "5 Processes to Automate First",
+    excerpt:
+      "Lead follow-up, booking reminders, invoicing and reporting: where automation pays back fastest and what to leave manual.",
+    category: "Automation",
+    author: "Solvera Technologies",
+    cover: { tone: "ink", motif: "bars" },
+    body: [
+      { type: "p", text: "Growing businesses tend to hit the same wall: more customers means more follow-ups, reminders, invoices and reports, and the team spends its time keeping up instead of doing the work. Automation helps most where tasks are frequent, predictable and easy to check. These five are common places to start." },
+      { type: "h2", id: "lead-follow-up", text: "1. Lead capture and follow-up" },
+      { type: "p", text: "Enquiries that arrive through your website, email or messaging apps can be recorded in your CRM automatically, assigned to the right person and acknowledged with a prompt reply. Speed matters here, and a missed enquiry is a missed customer." },
+      { type: "h2", id: "booking-reminders", text: "2. Booking confirmations and reminders" },
+      { type: "p", text: "Confirmations, reminders and easy rescheduling links reduce no-shows and save the back-and-forth by phone or message. They are predictable, low risk and easy to test." },
+      { type: "h2", id: "invoicing", text: "3. Invoicing and payment reminders" },
+      { type: "p", text: "Creating an invoice from a completed job and sending polite reminders as the due date approaches takes real time each week. Automating the routine steps helps you get paid on schedule. Keep a person in charge of anything unusual, such as disputed amounts or special terms." },
+      { type: "h2", id: "reporting", text: "4. Recurring reporting" },
+      { type: "p", text: "If someone rebuilds the same weekly or monthly report by copying figures between tools, that work can usually be automated. A report that updates itself also tends to be more consistent and easier to trust." },
+      { type: "h2", id: "data-sync", text: "5. Keeping customer details in sync" },
+      { type: "p", text: "When the same customer exists in your CRM, accounting software and support tool, someone ends up retyping details and fixing mismatches. Connecting those tools means a change is made once and appears everywhere." },
+      { type: "callout", title: "Document it before you automate it", text: "If you cannot write the process down as a short list of steps with clear exceptions, it is not ready to automate. Writing it down often reveals improvements on its own." },
+      { type: "h2", id: "what-to-leave-manual", text: "What to leave manual, for now" },
+      { type: "ul", items: [
+        "Sensitive conversations where tone and judgement matter",
+        "Processes that are still changing or have many one-off exceptions",
+        "Anything where a silent failure could cause serious harm and nobody would notice",
+      ] },
+      { type: "h2", id: "start-with-one", text: "Start with one, then expand" },
+      { type: "p", text: "Choose the process that costs your team the most time, automate it, and measure the hours saved. Most teams find it easier to expand once the first workflow has proved its value and someone owns keeping it running." },
+    ],
+  },
   {
     slug: "which-business-processes-to-automate",
     title: "How to Identify the Right Business Processes to Automate",
@@ -180,7 +291,7 @@ export const articles: Article[] = [
   },
 ];
 
-export const articleCategories: ArticleCategory[] = ["Automation", "Web Development", "AI", "Digital Marketing", "Strategy"];
+export const articleCategories: ArticleCategory[] = ["Automation", "Web Development", "App Development", "AI", "Digital Marketing", "Strategy"];
 
 function blockText(block: ArticleBlock) {
   switch (block.type) {

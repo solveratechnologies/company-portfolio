@@ -1,4 +1,4 @@
-export type ArticleCategory = "Automation" | "Web Development" | "AI" | "Digital Marketing" | "Strategy";
+export type ArticleCategory = "Automation" | "Web Development" | "App Development" | "AI" | "Digital Marketing" | "Strategy";
 
 export type ArticleBlock =
   | { type: "h2"; id: string; text: string }

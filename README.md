@@ -43,6 +43,7 @@ All variables are documented in [`.env.example`](./.env.example).
 | `NEXT_PUBLIC_CONTACT_EMAIL` / `_PHONE` / `_ADDRESS` | No | Verified contact details. Hidden everywhere when empty. |
 | `NEXT_PUBLIC_SOCIAL_LINKS` | No | Verified social profiles, `Label|https://…` pairs. Hidden when empty. |
 | `RESEND_API_KEY` + `CONTACT_TO_EMAIL` (+ `CONTACT_FROM_EMAIL`) | One delivery option | Email delivery of inquiries via Resend. |
+| `SMTP_USER` + `SMTP_PASS` + `CONTACT_TO_EMAIL` (+ `SMTP_HOST`, `SMTP_PORT`, `CONTACT_FROM_EMAIL`) | One delivery option | Email delivery over SMTP with nodemailer. Defaults to Gmail (`smtp.gmail.com`, port 465). `SMTP_PASS` is a Gmail **App Password** (needs 2-Step Verification), never the account password. Server-side only. If several options are set, the order is Resend, then SMTP, then webhook. Gmail has its own daily sending limit; check Google's current limits. |
 | `CONTACT_WEBHOOK_URL` (+ `CONTACT_WEBHOOK_SECRET`) | One delivery option | POSTs inquiries as JSON to n8n, Make, Zapier, GoHighLevel or a CRM endpoint. |
 
 ### Contact form
@@ -187,7 +188,7 @@ Run on 27 October 2026 on Node 22 (see the Node requirement above), Chromium onl
 ## Still to configure before launch
 
 1. `NEXT_PUBLIC_SITE_URL` — the production https origin (the production build refuses to run without it).
-2. A contact delivery provider (Resend **or** an https webhook), tested end to end on staging.
+2. A contact delivery provider (Resend, SMTP **or** an https webhook), tested end to end on staging.
 3. Verified contact details and social links (optional).
 4. `CONTACT_CLIENT_IP_HEADER` and, on serverless/multi-instance hosting, a shared rate-limit store / CAPTCHA.
 5. Legal pages: the `LEGAL_*` facts and counsel review (see [Legal pages](#legal-pages)) — until then they are `noindex`.

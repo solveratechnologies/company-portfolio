@@ -271,7 +271,7 @@ export function ProcessTimeline({ phases }: { phases: ProcessPhase[] }) {
             eyebrow="Our process"
             id="process-title"
             title="From First Conversation to Continuous Improvement."
-            description="A structured, transparent process — so you always know what is happening, what we need from you, and what comes next."
+            description="A structured, transparent process, so you always know what's happening, what we need from you, and what comes next."
             action={
               <ButtonLink href="/process" variant="secondary" arrow>
                 See How We Work

@@ -5,9 +5,9 @@ import { Container, Section } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
 const highlights = [
-  { icon: Layers, title: "Build", text: "Websites, applications and dashboards with solid, maintainable foundations." },
-  { icon: Link2, title: "Connect", text: "AI and automation that link your tools so information flows without manual effort." },
-  { icon: TrendingUp, title: "Grow", text: "Search, campaigns and analytics that bring the right people and show what works." },
+  { icon: Layers, title: "Build", text: "Mobile apps, websites, web platforms and dashboards on solid, maintainable foundations." },
+  { icon: Link2, title: "Connect", text: "AI and automation that link your tools, so information flows without copy-and-paste." },
+  { icon: TrendingUp, title: "Grow", text: "Search, paid campaigns and analytics that bring the right people and show what\u2019s working." },
 ];
 
 export function AboutPreview() {
@@ -18,12 +18,13 @@ export function AboutPreview() {
           <SectionHeading
             eyebrow="About Solvera"
             id="about-preview-title"
-            title="Technology That Moves Your Business Forward."
+            title="One Partner, From First Idea to Measurable Growth."
             description={
               <p>
-                Most business problems don&apos;t fit neatly into one discipline. A slow website, a manual follow-up process and unclear
-                marketing data are often the same problem seen from different angles. Solvera brings development, AI, automation and
-                marketing together, so the solution fits the way your business actually works.
+                Most business problems don&apos;t fit neatly into one discipline. A slow website, an app customers abandon, a manual
+                follow-up process and unclear marketing data are often the same problem seen from different angles. Solvera brings
+                development, AI, automation and marketing under one roof, so the solution fits the way your business actually works and
+                nothing gets lost between agencies.
               </p>
             }
           />
@@ -56,7 +57,7 @@ function StackVisual() {
   const layers = [
     { label: "Grow", items: ["SEO", "Paid campaigns", "Analytics"], tone: "bg-mint-50 border-mint/30", dot: "bg-mint" },
     { label: "Connect", items: ["AI assistants", "Workflows", "Integrations"], tone: "bg-brand-50 border-brand/25", dot: "bg-brand" },
-    { label: "Build", items: ["Websites", "Web apps", "Dashboards"], tone: "bg-white border-line", dot: "bg-ink" },
+    { label: "Build", items: ["iOS & Android apps", "Web apps", "Dashboards"], tone: "bg-white border-line", dot: "bg-ink" },
   ];
   return (
     <div data-reveal role="img" aria-label="Illustration: Solvera's three connected layers — build, connect and grow" className="relative mx-auto w-full max-w-lg">

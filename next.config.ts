@@ -60,6 +60,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   // Do not advertise the framework in responses.
   poweredByHeader: false,
+  // Next 16 caches optimized images for 4 hours by default. While developing, keep it short so a
+  // replaced file in /public shows up on refresh. Production keeps the default.
+  images: process.env.NODE_ENV === "development" ? { minimumCacheTTL: 1 } : undefined,
   cacheComponents: true,
   partialPrefetching: true,
   async headers() {

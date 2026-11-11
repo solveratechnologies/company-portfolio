@@ -28,6 +28,8 @@ describe("POST /api/contact", () => {
     resetContactProtection();
     delete process.env.RESEND_API_KEY;
     delete process.env.CONTACT_TO_EMAIL;
+    delete process.env.SMTP_USER;
+    delete process.env.SMTP_PASS;
     delete process.env.CONTACT_WEBHOOK_URL;
     delete process.env.CONTACT_WEBHOOK_SECRET;
     delete process.env.CONTACT_CLIENT_IP_HEADER;

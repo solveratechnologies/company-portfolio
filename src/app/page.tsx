@@ -22,6 +22,18 @@ export const metadata = pageMetadata({
   path: "/",
 });
 
+// Home-page wording for the industries list. The /industries page keeps the text in src/data/industries.ts.
+const industryCopy: Record<string, { name: string; summary: string }> = {
+  "ecommerce-retail": { name: "E-commerce & Retail", summary: "Fast storefronts, shopping apps, connected inventory and marketing you can measure." },
+  "restaurants-hospitality": { name: "Restaurants & Hospitality", summary: "Online ordering, bookings, reviews and guest messaging in one flow." },
+  "professional-services": { name: "Professional Services", summary: "Credible websites, client portals, smooth intake and less admin." },
+  "real-estate": { name: "Real Estate", summary: "Lead capture, qualification and follow-up that keeps pace with every enquiry." },
+  healthcare: { name: "Healthcare & Clinics", summary: "Patient booking, digital intake and reminders, designed around privacy." },
+  education: { name: "Education & Training", summary: "Learning apps, enrolment journeys and AI-powered knowledge search." },
+  "startups-saas": { name: "Startups & SaaS", summary: "MVPs, mobile and web products, and the tooling that helps teams scale." },
+  "financial-services": { name: "Financial Services", summary: "Secure client portals, document processing and compliant communication." },
+};
+
 export default async function HomePage() {
   const { industries, processPhases } = await getContent();
   return (
@@ -33,7 +45,7 @@ export default async function HomePage() {
       <ShowSection page="home" section="automation"><AutomationSpotlight /></ShowSection>
       <ShowSection page="home" section="why"><WhyChooseUs /></ShowSection>
       <ShowSection page="home" section="industries">
-        <IndustriesGrid industries={industries.map(({ slug, name, summary }) => ({ slug, name, summary }))} />
+        <IndustriesGrid industries={industries.map(({ slug, name, summary }) => ({ slug, name: industryCopy[slug]?.name ?? name, summary: industryCopy[slug]?.summary ?? summary }))} />
       </ShowSection>
       <ShowSection page="home" section="process"><ProcessTimeline phases={processPhases} /></ShowSection>
       <ShowSection page="home" section="testimonials"><TestimonialsSection /></ShowSection>

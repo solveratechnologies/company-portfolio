@@ -10,26 +10,26 @@ export const processPhases: ProcessPhase[] = [
   {
     number: "01",
     title: "Discover",
-    summary: "We learn about your business, goals, users and constraints, and identify where technology can help most.",
-    deliverables: ["Discovery notes", "Goals & success measures", "Opportunity map"],
+    summary: "We learn about your business, goals, users and constraints, and find where technology can help most.",
+    deliverables: ["Discovery workshop", "Goals & success measures", "Opportunity map"],
   },
   {
     number: "02",
     title: "Define",
     summary: "We agree on scope, priorities, architecture and timeline, so everyone knows what will be built and why.",
-    deliverables: ["Written scope", "Solution outline", "Delivery plan"],
+    deliverables: ["Written scope", "UX wireframes", "Delivery plan"],
   },
   {
     number: "03",
     title: "Develop",
-    summary: "We design and build in reviewable increments, sharing progress regularly on a staging environment.",
-    deliverables: ["Designs & prototypes", "Working builds", "Progress updates"],
+    summary: "We design and build in reviewable increments, sharing progress regularly on a staging environment or test app.",
+    deliverables: ["Designs & prototypes", "Working builds", "Weekly updates"],
   },
   {
     number: "04",
     title: "Deliver",
-    summary: "We test, launch and hand over — then keep improving based on how the solution is actually used.",
-    deliverables: ["Tested release", "Documentation", "Improvement backlog"],
+    summary: "We test, launch (including App Store and Google Play submission), hand over, then keep improving based on real use.",
+    deliverables: ["Tested release", "Documentation", "Support & improvement plan"],
   },
 ];
 

@@ -15,17 +15,22 @@ export async function HeroSection() {
       <div aria-hidden className="absolute -right-48 -top-48 -z-10 size-[760px] rounded-full bg-brand/30 blur-[150px]" />
       <div aria-hidden className="absolute -bottom-64 -left-40 -z-10 size-[560px] rounded-full bg-brand/15 blur-[150px]" />
 
-      <Container size="wide" className="grid items-center gap-12 pb-10 pt-32 md:pt-40 lg:min-h-[min(860px,100svh)] lg:grid-cols-[1.12fr_1fr] lg:gap-8 lg:pb-14">
-        <div className="flex flex-col gap-7">
+      <Container size="wide" className="grid items-center gap-10 pb-10 pt-32 md:pt-40 lg:min-h-[min(820px,100svh)] lg:grid-cols-[0.82fr_1.18fr] lg:gap-6 lg:pb-14">
+        <div className="relative z-10 flex flex-col gap-7">
           <div className="enter" style={{ "--i": 0 } as CSSProperties}>
             <Eyebrow>Strategy · Technology · Growth</Eyebrow>
           </div>
-          <h1 id="hero-title" className="enter text-display font-semibold text-balance" style={{ "--i": 1 } as CSSProperties}>
-            Build Smarter. Work Faster.{" "}
-            <span className="text-brand-600">Grow Further.</span>
+          <h1
+            id="hero-title"
+            className="enter text-[clamp(2.65rem,4.6vw,4.25rem)] font-semibold leading-[1.02] tracking-[-0.038em]"
+            style={{ "--i": 1 } as CSSProperties}
+          >
+            <span className="block">Build Smarter.</span>
+            <span className="block">Work Faster.</span>
+            <span className="block text-brand-600">Grow Further.</span>
           </h1>
           <p className="enter max-w-xl text-lead text-muted" style={{ "--i": 2 } as CSSProperties}>
-            Solvera Technologies helps businesses turn complex challenges into powerful digital experiences, intelligent automation, and measurable growth.
+            We design and build mobile apps, web platforms, AI tools and automated workflows for growing businesses. Then we help you market them, so your technology brings in customers and saves your team time.
           </p>
           <div className="enter flex flex-wrap gap-3 pt-1" style={{ "--i": 3 } as CSSProperties}>
             <ButtonLink href="/contact" size="lg" arrow>
@@ -36,7 +41,7 @@ export async function HeroSection() {
             </ButtonLink>
           </div>
         </div>
-        <div className="flex w-full self-stretch justify-center lg:justify-end">
+        <div className="enter flex w-full justify-center lg:justify-end" style={{ "--i": 2 } as CSSProperties}>
           <HeroVisual />
         </div>
       </Container>

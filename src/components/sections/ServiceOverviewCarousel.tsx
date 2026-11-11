@@ -38,7 +38,7 @@ function CardFace({ service, index, featured }: { service: ServiceSlide; index: 
       <h3 className="mt-6 text-card font-semibold text-ink">{service.title}</h3>
       <p className="mt-3 leading-relaxed text-muted">{service.summary}</p>
       <ul className="mt-5 flex flex-wrap gap-1.5">
-        {service.offerings.slice(0, 4).map((item) => (
+        {service.offerings.map((item) => (
           <li key={item.title} className="rounded-full border border-line px-2.5 py-1 text-xs text-ink/70">
             {item.title}
           </li>
@@ -195,7 +195,7 @@ export function ServiceOverviewCarousel({ services }: { services: ServiceSlide[]
         role="region"
         aria-roledescription="carousel"
         aria-labelledby={labelId}
-        className="relative mt-3 h-[520px] overflow-hidden sm:h-[560px]"
+        className="relative mt-3 h-[690px] overflow-hidden min-[360px]:h-[640px] sm:h-[560px]"
       >
         {/* Announce slide changes only when the user is stepping manually; stay silent while auto-rotating. */}
         <p id={labelId} aria-live={rotating ? "off" : "polite"} aria-atomic className="sr-only">

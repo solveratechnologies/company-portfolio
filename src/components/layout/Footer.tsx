@@ -4,6 +4,7 @@ import { siteConfig } from "@/config/site";
 import { footerNav, legalNav } from "@/data/navigation";
 import { getContent } from "@/content";
 import { Logo } from "@/components/ui/Logo";
+import { SocialIcon, getNetwork } from "@/components/ui/SocialIcon";
 import { CurrentYear } from "./CurrentYear";
 
 export async function Footer() {
@@ -56,19 +57,27 @@ export async function Footer() {
               </p>
             )}
             {siteConfig.social.length > 0 && (
-              <ul className="flex flex-wrap gap-2" aria-label="Social profiles">
-                {siteConfig.social.map((s) => (
-                  <li key={s.href}>
-                    <a
-                      href={s.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex rounded-full border border-white/15 px-3 py-1.5 text-xs text-white/75 hover:border-white/40 hover:text-white"
-                    >
-                      {s.label}
-                    </a>
-                  </li>
-                ))}
+              <ul className="flex flex-wrap gap-2.5" aria-label="Social profiles">
+                {siteConfig.social.map((s) => {
+                  const network = getNetwork(s.label);
+                  return (
+                    <li key={s.href}>
+                      <a
+                        href={s.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`${s.label} (opens in a new tab)`}
+                        className={
+                          network
+                            ? "inline-flex size-10 items-center justify-center rounded-full border border-white/15 text-white/75 transition-colors hover:border-brand hover:bg-brand/15 hover:text-white"
+                            : "inline-flex rounded-full border border-white/15 px-3 py-1.5 text-xs text-white/75 hover:border-white/40 hover:text-white"
+                        }
+                      >
+                        {network ? <SocialIcon network={network} className="size-[1.1rem]" /> : s.label}
+                      </a>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>

@@ -5,7 +5,7 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 export function FinalCTA({
   title = "Let's Build Something That Moves Your Business Forward.",
   description = "Tell us what you are trying to achieve. We'll help you identify the right next step.",
-  primary = { label: "Start a Project", href: "/contact" },
+  primary = { label: "Book a free demo", href: "/contact" },
   secondary = { label: "Explore Services", href: "/services" },
   eyebrow = "Next step",
 }: {

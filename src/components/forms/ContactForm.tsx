@@ -30,7 +30,7 @@ function readForm(form: HTMLFormElement) {
     timeline: get("timeline"),
     message: get("message"),
     consent: fd.get("consent") === "on",
-    companyFax: get("companyFax"),
+    companyFax: get("hpTrapField"),
   };
 }
 
@@ -224,8 +224,9 @@ export function ContactForm({ contactEmail }: { contactEmail?: string }) {
 
       {/* Honeypot: hidden from people and assistive tech, attractive to bots. */}
       <div aria-hidden className="absolute -left-[9999px] size-px overflow-hidden">
-        <label htmlFor="companyFax">Company fax</label>
-        <input id="companyFax" name="companyFax" type="text" tabIndex={-1} autoComplete="off" />
+        {/* Deliberately not named like a real field (fax, phone, ...): browser autofill would fill it and get real users flagged as bots. */}
+        <label htmlFor="hp-trap-field">Leave this field empty</label>
+        <input id="hp-trap-field" name="hpTrapField" type="text" tabIndex={-1} autoComplete="off" data-lpignore="true" data-1p-ignore="true" />
       </div>
 
       <div className="flex flex-col gap-2">

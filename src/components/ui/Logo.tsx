@@ -15,7 +15,7 @@ export function Logo({ tone = "dark", className }: { tone?: "dark" | "light"; cl
       width={800}
       height={284}
       sizes="160px"
-      className={cn("h-14 w-auto select-none", className)}
+      className={cn("h-11 w-auto select-none", className)}
     />
   );
 }

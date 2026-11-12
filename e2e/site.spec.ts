@@ -219,7 +219,7 @@ test.describe("desktop navigation", () => {
 
   test("header CTA and logo navigate", async ({ page }) => {
     await page.goto("/about");
-    await page.getByRole("banner").getByRole("link", { name: "Start a Project" }).click();
+    await page.getByRole("banner").getByRole("link", { name: "Book a free demo" }).click();
     await expect(page).toHaveURL(/\/contact$/);
     await page.getByRole("banner").getByRole("link", { name: /Home/ }).first().click();
     await expect(page).toHaveURL(/\/$/);
@@ -285,8 +285,41 @@ test("article shows calculated reading time and table of contents", async ({ pag
   await expect(page.getByRole("navigation", { name: "Table of contents" })).toBeVisible();
 });
 
+// The Contact page shows either the booking calendar (CONTACT_MODE=booking, the
+// default) or the inquiry form (CONTACT_MODE=form). Each test runs only for the
+// mode the server is actually in.
+test("booking calendar: pick a date, then enter details", async ({ page }) => {
+  // Never send a real email from a test.
+  let posted: Record<string, unknown> | null = null;
+  await page.route("**/api/booking", async (route) => {
+    posted = route.request().postDataJSON();
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
+  });
+  await page.goto("/contact");
+  test.skip((await page.getByRole("grid").count()) === 0, "Contact page is in form mode");
+
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByText(/choose a date/i).first()).toBeVisible();
+
+  await page.locator("[aria-current=date]").focus();
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("Enter");
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  await page.getByRole("button", { name: /confirm booking/i }).click();
+  await expect(page.getByLabel(/^name/i)).toHaveAttribute("aria-invalid", "true");
+  await page.getByLabel(/^name/i).fill("Jane Doe");
+  await page.getByLabel(/^email/i).fill("jane@company.com");
+  await page.getByLabel(/company name/i).fill("Acme Ltd");
+  await page.waitForTimeout(2600); // honest user typing time (spam check)
+  await page.getByRole("button", { name: /confirm booking/i }).click();
+  await expect(page.getByText(/booking request has been sent/i)).toBeVisible();
+  expect(posted).toMatchObject({ fullName: "Jane Doe", email: "jane@company.com", company: "Acme Ltd" });
+});
+
 test("contact form validates and never fakes success", async ({ page }) => {
   await page.goto("/contact?service=AI%20Solutions");
+  test.skip((await page.getByRole("grid").count()) > 0, "Contact page is in booking mode");
   await expect(page.getByLabel(/service required/i)).toHaveValue("AI Solutions");
   await page.getByRole("button", { name: /send inquiry/i }).click();
   await expect(page.getByLabel(/full name/i)).toHaveAttribute("aria-invalid", "true");

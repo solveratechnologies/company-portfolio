@@ -3,7 +3,7 @@ import { PageHero } from "@/components/ui/PageHero";
 import { ButtonLink } from "@/components/ui/Button";
 import type { ReactNode } from "react";
 
-export function ServiceHero({ service, title, description, aside, ctaLabel = "Start a Project" }: { service: Service; title: string; description: string; aside?: ReactNode; ctaLabel?: string }) {
+export function ServiceHero({ service, title, description, aside, ctaLabel = "Book a free demo" }: { service: Service; title: string; description: string; aside?: ReactNode; ctaLabel?: string }) {
   return (
     <PageHero
       breadcrumbs={[

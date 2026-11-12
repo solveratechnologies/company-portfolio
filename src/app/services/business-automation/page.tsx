@@ -137,7 +137,7 @@ export default async function BusinessAutomationPage() {
         eyebrow="Business automation"
         title="Automate a Business Process."
         description="Describe a task your team repeats every week. We'll map it and show you what could run automatically."
-        primary={{ label: "Start a Project", href: "/contact?service=Business%20Automation" }}
+        primary={{ label: "Book a free demo", href: "/contact?service=Business%20Automation" }}
         secondary={{ label: "Read: what to automate first", href: "/insights/which-business-processes-to-automate" }}
       />
     </>

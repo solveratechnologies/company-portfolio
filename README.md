@@ -41,10 +41,19 @@ All variables are documented in [`.env.example`](./.env.example).
 | `CONTACT_CLIENT_IP_HEADER` | Recommended in production | Name of the header **your own proxy/CDN** sets with the real client IP. Without it, client-sent `X-Forwarded-For` is ignored. |
 | `CSP_REPORT_ONLY` | No | `true` ships the CSP as `Content-Security-Policy-Report-Only`. |
 | `NEXT_PUBLIC_CONTACT_EMAIL` / `_PHONE` / `_ADDRESS` | No | Verified contact details. Hidden everywhere when empty. |
-| `NEXT_PUBLIC_SOCIAL_LINKS` | No | Verified social profiles, `Label|https://…` pairs. Hidden when empty. |
+| `NEXT_PUBLIC_SOCIAL_LINKS` | No | Verified social profiles, comma-separated `Label|https://…` pairs, e.g. `X|https://x.com/you,Facebook|https://facebook.com/you,Instagram|https://instagram.com/you,LinkedIn|https://linkedin.com/company/you`. The footer shows an icon for X/Twitter, Facebook, Instagram and LinkedIn (any other label shows as a text pill). Only profiles you list are shown; hidden when empty. Restart the dev server after changing it. |
 | `RESEND_API_KEY` + `CONTACT_TO_EMAIL` (+ `CONTACT_FROM_EMAIL`) | One delivery option | Email delivery of inquiries via Resend. |
 | `SMTP_USER` + `SMTP_PASS` + `CONTACT_TO_EMAIL` (+ `SMTP_HOST`, `SMTP_PORT`, `CONTACT_FROM_EMAIL`) | One delivery option | Email delivery over SMTP with nodemailer. Defaults to Gmail (`smtp.gmail.com`, port 465). `SMTP_PASS` is a Gmail **App Password** (needs 2-Step Verification), never the account password. Server-side only. If several options are set, the order is Resend, then SMTP, then webhook. Gmail has its own daily sending limit; check Google's current limits. |
 | `CONTACT_WEBHOOK_URL` (+ `CONTACT_WEBHOOK_SECRET`) | One delivery option | POSTs inquiries as JSON to n8n, Make, Zapier, GoHighLevel or a CRM endpoint. |
+
+### Booking calendar or inquiry form (`CONTACT_MODE`)
+
+The Contact page shows one of two things in its main card, chosen by `CONTACT_MODE`:
+
+- `booking` (default): a date-picker booking calendar. Step 1 picks a date (today to 90 days ahead), step 2 collects name, email and an optional company name. The request is emailed through the same delivery settings as the inquiry form (`POST /api/booking`).
+- `form`: the original project inquiry form.
+
+Set it in `.env.local` and restart the dev server (or rebuild), since it is read on the server. The booking and inquiry flows share `CONTACT_TO_EMAIL` and the Resend/SMTP/webhook settings.
 
 ### Contact form
 

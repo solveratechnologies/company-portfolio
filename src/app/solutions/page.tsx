@@ -138,7 +138,7 @@ export default async function SolutionsPage() {
       />
       </ShowSection>
       <ShowSection page="solutions" section="cta">
-      <FinalCTA title="Describe the problem. We'll help design the solution." primary={{ label: "Start a Project", href: "/contact?service=Custom%20Software" }} secondary={{ label: "Explore services", href: "/services" }} />
+      <FinalCTA title="Describe the problem. We'll help design the solution." primary={{ label: "Book a free demo", href: "/contact?service=Custom%20Software" }} secondary={{ label: "Explore services", href: "/services" }} />
       </ShowSection>
     </>
   );

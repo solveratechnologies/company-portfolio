@@ -76,7 +76,7 @@ export default async function WebDevelopmentPage() {
         eyebrow="Web development"
         title="Discuss Your Website or Software Project."
         description="Share what you need to build and any deadlines. We'll come back with questions and a suggested approach."
-        primary={{ label: "Start a Project", href: "/contact?service=Web%20Development" }}
+        primary={{ label: "Book a free demo", href: "/contact?service=Web%20Development" }}
         secondary={{ label: "View our work", href: "/work?category=Web%20Development" }}
       />
     </>

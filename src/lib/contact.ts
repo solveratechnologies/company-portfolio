@@ -1,6 +1,7 @@
 import "server-only";
 import nodemailer from "nodemailer";
 import type { ContactData } from "./validation";
+import { formatBookingDate, type BookingData } from "./booking-validation";
 
 /**
  * Delivery for project inquiries.
@@ -53,17 +54,61 @@ function escapeHtml(value: string) {
   return value.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 }
 
-function toRows(data: ContactData): [string, string][] {
-  return [
-    ["Name", data.fullName],
-    ["Email", data.email],
-    ["Company", data.company ?? "—"],
-    ["Website", data.website ?? "—"],
-    ["Service", data.service],
-    ["Budget", data.budget ?? "—"],
-    ["Timeline", data.timeline ?? "—"],
-    ["Project description", data.message],
-  ];
+/** What gets delivered. Project inquiries and booking requests share the same providers and safeguards. */
+type OutboundMessage = {
+  kind: "project_inquiry" | "booking_request";
+  subject: string;
+  heading: string;
+  rows: [string, string][];
+  replyTo: string;
+  /** Client-generated id, used as the provider idempotency key. */
+  id?: string;
+  /** Extra JSON fields for the webhook provider. */
+  webhookPayload: Record<string, unknown>;
+};
+
+function inquiryMessage(data: ContactData): OutboundMessage {
+  const { companyFax: _honeypot, startedAt: _startedAt, ...payload } = data;
+  void _honeypot;
+  void _startedAt;
+  return {
+    kind: "project_inquiry",
+    subject: `New inquiry: ${data.service} — ${data.fullName}`,
+    heading: "New project inquiry",
+    rows: [
+      ["Name", data.fullName],
+      ["Email", data.email],
+      ["Company", data.company ?? "—"],
+      ["Website", data.website ?? "—"],
+      ["Service", data.service],
+      ["Budget", data.budget ?? "—"],
+      ["Timeline", data.timeline ?? "—"],
+      ["Project description", data.message],
+    ],
+    replyTo: data.email,
+    id: data.submissionId,
+    webhookPayload: payload,
+  };
+}
+
+function bookingMessage(data: BookingData): OutboundMessage {
+  const { companyFax: _honeypot, startedAt: _startedAt, ...payload } = data;
+  void _honeypot;
+  void _startedAt;
+  return {
+    kind: "booking_request",
+    subject: `New booking request: ${formatBookingDate(data.date)} — ${data.fullName}`,
+    heading: "New booking request",
+    rows: [
+      ["Requested date", `${formatBookingDate(data.date)} (${data.date})`],
+      ["Name", data.fullName],
+      ["Email", data.email],
+      ["Company", data.company ?? "—"],
+    ],
+    replyTo: data.email,
+    id: data.submissionId,
+    webhookPayload: payload,
+  };
 }
 
 /** Only a 2xx from the provider counts as accepted. Never log the response body. */
@@ -74,9 +119,9 @@ function accepted(provider: DeliveryProvider, res: Response): DeliveryResult {
 }
 
 /** Plain-text and HTML bodies. Every visitor-supplied value is escaped in the HTML version. */
-function buildEmailBody(data: ContactData) {
-  const rows = toRows(data);
-  const html = `<h2>New project inquiry</h2><table cellpadding="6">${rows
+function buildEmailBody(msg: OutboundMessage) {
+  const rows = msg.rows;
+  const html = `<h2>${escapeHtml(msg.heading)}</h2><table cellpadding="6">${rows
     .map(([k, v]) => `<tr><td><strong>${escapeHtml(k)}</strong></td><td>${escapeHtml(v).replace(/\n/g, "<br>")}</td></tr>`)
     .join("")}</table>`;
   const text = rows.map(([k, v]) => `${k}: ${v}`).join("\n");
@@ -95,6 +140,11 @@ function splitRecipients(value: string) {
     .filter(Boolean);
 }
 
+/** Optional CC copy of every email (CONTACT_CC_EMAIL, comma-separated). Email providers only. */
+function ccRecipients(env: NodeJS.ProcessEnv) {
+  return env.CONTACT_CC_EMAIL ? splitRecipients(env.CONTACT_CC_EMAIL) : [];
+}
+
 function withTimeout<T>(work: Promise<T>, ms: number): Promise<T> {
   let timer: ReturnType<typeof setTimeout>;
   const timeout = new Promise<never>((_, reject) => {
@@ -103,21 +153,22 @@ function withTimeout<T>(work: Promise<T>, ms: number): Promise<T> {
   return Promise.race([work, timeout]).finally(() => clearTimeout(timer));
 }
 
-async function sendWithResend(data: ContactData, env: NodeJS.ProcessEnv): Promise<DeliveryResult> {
-  const { html, text } = buildEmailBody(data);
+async function sendWithResend(msg: OutboundMessage, env: NodeJS.ProcessEnv): Promise<DeliveryResult> {
+  const { html, text } = buildEmailBody(msg);
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${env.RESEND_API_KEY}`,
       "Content-Type": "application/json",
-      ...(data.submissionId ? { "Idempotency-Key": data.submissionId } : {}),
+      ...(msg.id ? { "Idempotency-Key": msg.id } : {}),
     },
     body: JSON.stringify({
       from: env.CONTACT_FROM_EMAIL || "Solvera Website <onboarding@resend.dev>",
-      to: env.CONTACT_TO_EMAIL!.split(",").map((s) => s.trim()),
-      reply_to: data.email,
-      subject: `New inquiry: ${data.service} — ${data.fullName}`,
+      to: splitRecipients(env.CONTACT_TO_EMAIL!),
+      ...(ccRecipients(env).length > 0 ? { cc: ccRecipients(env) } : {}),
+      reply_to: msg.replyTo,
+      subject: msg.subject,
       html,
       text,
     }),
@@ -131,8 +182,8 @@ async function sendWithResend(data: ContactData, env: NodeJS.ProcessEnv): Promis
  * SMTP through nodemailer. Counts as delivered only when the SMTP server accepted the message for
  * every recipient (no rejected addresses). Gmail: use an App Password, never the account password.
  */
-async function sendWithSmtp(data: ContactData, env: NodeJS.ProcessEnv): Promise<DeliveryResult> {
-  const { html, text } = buildEmailBody(data);
+async function sendWithSmtp(msg: OutboundMessage, env: NodeJS.ProcessEnv): Promise<DeliveryResult> {
+  const { html, text } = buildEmailBody(msg);
   const port = Number(env.SMTP_PORT) || 465;
   const recipients = splitRecipients(env.CONTACT_TO_EMAIL!);
   const transport = nodemailer.createTransport({
@@ -154,8 +205,9 @@ async function sendWithSmtp(data: ContactData, env: NodeJS.ProcessEnv): Promise<
       transport.sendMail({
         from: env.CONTACT_FROM_EMAIL || env.SMTP_USER,
         to: recipients,
-        replyTo: data.email,
-        subject: oneLine(`New inquiry: ${data.service} — ${data.fullName}`),
+        ...(ccRecipients(env).length > 0 ? { cc: ccRecipients(env) } : {}),
+        replyTo: msg.replyTo,
+        subject: oneLine(msg.subject),
         text,
         html,
       }),
@@ -169,18 +221,15 @@ async function sendWithSmtp(data: ContactData, env: NodeJS.ProcessEnv): Promise<
   }
 }
 
-async function sendToWebhook(data: ContactData, env: NodeJS.ProcessEnv): Promise<DeliveryResult> {
-  const { companyFax: _honeypot, startedAt: _startedAt, ...payload } = data;
-  void _honeypot;
-  void _startedAt;
+async function sendToWebhook(msg: OutboundMessage, env: NodeJS.ProcessEnv): Promise<DeliveryResult> {
   const res = await fetch(env.CONTACT_WEBHOOK_URL!, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       ...(env.CONTACT_WEBHOOK_SECRET ? { "X-Webhook-Secret": env.CONTACT_WEBHOOK_SECRET } : {}),
-      ...(data.submissionId ? { "Idempotency-Key": data.submissionId } : {}),
+      ...(msg.id ? { "Idempotency-Key": msg.id } : {}),
     },
-    body: JSON.stringify({ type: "project_inquiry", receivedAt: new Date().toISOString(), ...payload }),
+    body: JSON.stringify({ type: msg.kind, receivedAt: new Date().toISOString(), ...msg.webhookPayload }),
     // Do not follow redirects: that could forward personal data and the secret to another host.
     redirect: "manual",
     signal: AbortSignal.timeout(DELIVERY_TIMEOUT_MS),
@@ -188,7 +237,16 @@ async function sendToWebhook(data: ContactData, env: NodeJS.ProcessEnv): Promise
   return accepted("webhook", res);
 }
 
-export async function deliverInquiry(data: ContactData, env: NodeJS.ProcessEnv = process.env): Promise<DeliveryResult> {
+export function deliverInquiry(data: ContactData, env: NodeJS.ProcessEnv = process.env): Promise<DeliveryResult> {
+  return deliver(inquiryMessage(data), env);
+}
+
+/** A call booking request (date + name, email, company). Same providers, timeouts and logging policy as inquiries. */
+export function deliverBooking(data: BookingData, env: NodeJS.ProcessEnv = process.env): Promise<DeliveryResult> {
+  return deliver(bookingMessage(data), env);
+}
+
+async function deliver(msg: OutboundMessage, env: NodeJS.ProcessEnv): Promise<DeliveryResult> {
   const provider = getDeliveryProvider(env);
   if (provider === "none") {
     if (env.CONTACT_WEBHOOK_URL && !isAllowedWebhookUrl(env.CONTACT_WEBHOOK_URL)) {
@@ -197,9 +255,9 @@ export async function deliverInquiry(data: ContactData, env: NodeJS.ProcessEnv =
     return { ok: false, reason: "not_configured" };
   }
   try {
-    if (provider === "resend") return await sendWithResend(data, env);
-    if (provider === "smtp") return await sendWithSmtp(data, env);
-    return await sendToWebhook(data, env);
+    if (provider === "resend") return await sendWithResend(msg, env);
+    if (provider === "smtp") return await sendWithSmtp(msg, env);
+    return await sendToWebhook(msg, env);
   } catch (error) {
     // Timeouts, DNS, TLS and login failures. Log only the error class and a short code such as
     // EAUTH — never the message, which can echo server responses or addresses (personal data).

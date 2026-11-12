@@ -34,7 +34,7 @@ export async function HeroSection() {
           </p>
           <div className="enter flex flex-wrap gap-3 pt-1" style={{ "--i": 3 } as CSSProperties}>
             <ButtonLink href="/contact" size="lg" arrow>
-              Start a Project
+              Book a free demo
             </ButtonLink>
             <ButtonLink href="/services" size="lg" variant="secondary">
               Explore Our Services

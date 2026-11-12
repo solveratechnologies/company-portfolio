@@ -58,7 +58,7 @@ export function Header({ services }: { services: ServiceLink[] }) {
         <div className="flex items-center gap-2">
           <span className="hidden sm:block">
             <ButtonLink href="/contact" variant="primary" arrow>
-              Start a Project
+              Book a free demo
             </ButtonLink>
           </span>
           <MobileNavigation pathname={pathname} services={services} />

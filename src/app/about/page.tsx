@@ -40,7 +40,7 @@ export default async function AboutPage() {
         actions={
           <>
             <ButtonLink href="/contact" size="lg" arrow>
-              Start a Project
+              Book a free demo
             </ButtonLink>
             <ButtonLink href="/process" size="lg" variant="secondary">
               How we work

@@ -153,7 +153,7 @@ export function MobileNavigation({ pathname, services }: { pathname: string; ser
           </ul>
           <div className="mt-auto pt-8">
             <ButtonLink href="/contact" size="lg" arrow className="w-full">
-              Start a Project
+              Book a free demo
             </ButtonLink>
           </div>
         </nav>

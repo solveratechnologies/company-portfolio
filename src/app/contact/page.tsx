@@ -10,6 +10,8 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Accordion } from "@/components/ui/Accordion";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { ContactForm } from "@/components/forms/ContactForm";
+import { BookingCalendar } from "@/components/forms/BookingCalendar";
+import { getContactMode } from "@/config/contact-mode";
 import Link from "next/link";
 
 export const metadata = pageMetadata({
@@ -29,6 +31,8 @@ export default async function ContactPage() {
   const { services, contactFaqs } = await getContent();
   const { email, phone, address } = siteConfig.contact;
   const hasContact = Boolean(email || phone || address);
+  // CONTACT_MODE in .env.local picks which block fills the inquiry slot: the booking calendar (default) or the inquiry form.
+  const booking = getContactMode() === "booking";
 
   return (
     <>
@@ -49,15 +53,20 @@ export default async function ContactPage() {
           {/* 2. Introduction + 4. Service selection guide */}
           <div className="flex flex-col gap-10">
             <div data-reveal>
-              <h2 className="text-card font-semibold">What happens after you send an inquiry</h2>
+              <h2 className="text-card font-semibold">{booking ? "What happens after you book" : "What happens after you send an inquiry"}</h2>
               <p className="mt-3 leading-relaxed text-muted">
-                Your message goes directly to the team. We review every inquiry ourselves, then reply by email with questions or a
-                suggested time to talk. There&apos;s no obligation, and we only use your details to respond.
+                {booking
+                  ? "Pick the day that suits you and tell us who's booking. Your request goes directly to the team, and we reply by email to confirm a time for a short call. There's no obligation, and we only use your details to arrange the call."
+                  : "Your message goes directly to the team. We review every inquiry ourselves, then reply by email with questions or a suggested time to talk. There's no obligation, and we only use your details to respond."}
               </p>
             </div>
             <div data-reveal>
-              <h2 className="text-card font-semibold">Choosing a service</h2>
-              <p className="mt-3 text-sm leading-relaxed text-muted">Not sure which to select? Here&apos;s a quick guide — or choose “Not sure yet”.</p>
+              <h2 className="text-card font-semibold">{booking ? "What we can help with" : "Choosing a service"}</h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted">
+                {booking
+                  ? "Not sure what you need yet? That's fine — here's what we do, and we can talk it through on the call."
+                  : "Not sure which to select? Here's a quick guide — or choose “Not sure yet”."}
+              </p>
               <ul className="mt-5 flex flex-col gap-3">
                 {services.map((s) => {
                   const Icon = s.icon;
@@ -80,12 +89,12 @@ export default async function ContactPage() {
           {/* 3. Form */}
           <div id="inquiry" data-reveal className="rounded-[1.75rem] border border-line bg-white p-6 shadow-[0_30px_60px_-40px_rgb(16_24_32/0.35)] sm:p-9">
             <h2 id="inquiry-title" className="text-[1.6rem] font-semibold tracking-tight">
-              Project inquiry
+              {booking ? "Book a call" : "Project inquiry"}
             </h2>
-            <p className="mt-2 text-muted">A few details help us prepare a useful first conversation.</p>
-            <div className="mt-8">
-              <ContactForm contactEmail={email} />
-            </div>
+            <p className="mt-2 text-muted">
+              {booking ? "Choose a date, then tell us who's booking. We'll confirm a time by email." : "A few details help us prepare a useful first conversation."}
+            </p>
+            <div className="mt-8">{booking ? <BookingCalendar contactEmail={email} /> : <ContactForm contactEmail={email} />}</div>
           </div>
         </Container>
       </Section>
@@ -150,7 +159,9 @@ export default async function ContactPage() {
               </ul>
             ) : (
               <p className="max-w-xl text-muted">
-                The inquiry form above is the best way to reach us — it goes straight to the team and helps us respond with useful context.
+                {booking
+                  ? "The booking calendar above is the best way to reach us — it goes straight to the team."
+                  : "The inquiry form above is the best way to reach us — it goes straight to the team and helps us respond with useful context."}
               </p>
             )}
           </div>

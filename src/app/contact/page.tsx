@@ -56,7 +56,7 @@ export default async function ContactPage() {
               <h2 className="text-card font-semibold">{booking ? "What happens after you book" : "What happens after you send an inquiry"}</h2>
               <p className="mt-3 leading-relaxed text-muted">
                 {booking
-                  ? "Pick the day that suits you and tell us who's booking. Your request goes directly to the team, and we reply by email to confirm a time for a short call. There's no obligation, and we only use your details to arrange the call."
+                  ? "Pick the day and the 30-minute time that suits you, then tell us who's booking. Your request goes directly to the team, and we reply by email to confirm the call. There's no obligation, and we only use your details to arrange the call."
                   : "Your message goes directly to the team. We review every inquiry ourselves, then reply by email with questions or a suggested time to talk. There's no obligation, and we only use your details to respond."}
               </p>
             </div>
@@ -92,7 +92,7 @@ export default async function ContactPage() {
               {booking ? "Book a call" : "Project inquiry"}
             </h2>
             <p className="mt-2 text-muted">
-              {booking ? "Choose a date, then tell us who's booking. We'll confirm a time by email." : "A few details help us prepare a useful first conversation."}
+              {booking ? "Choose a date and a time, then tell us who's booking. We'll confirm by email." : "A few details help us prepare a useful first conversation."}
             </p>
             <div className="mt-8">{booking ? <BookingCalendar contactEmail={email} /> : <ContactForm contactEmail={email} />}</div>
           </div>

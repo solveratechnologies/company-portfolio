@@ -50,7 +50,7 @@ All variables are documented in [`.env.example`](./.env.example).
 
 The Contact page shows one of two things in its main card, chosen by `CONTACT_MODE`:
 
-- `booking` (default): a date-picker booking calendar. Step 1 picks a date (today to 90 days ahead), step 2 collects name, email and an optional company name. The request is emailed through the same delivery settings as the inquiry form (`POST /api/booking`).
+- `booking` (default): a date-picker booking calendar. Step 1 picks a date (today to 90 days ahead) and a 30-minute time slot. Slots are 10:00 AM to 6:00 PM Pakistan time (PKT, UTC+5) but are **shown in the visitor's own time zone** (taken from their browser), in a scrollable single column beside the calendar (stacked below it on narrow screens); slots that have already started are hidden. The booking is always recorded in PKT, and the email shows both the PKT time and the visitor's local time (plus their IANA zone, e.g. `Asia/Tokyo`). Step 2 collects name, email and an optional company name. Some slots are shown blurred as "already taken" and cannot be booked; the server rejects them too. **These taken slots are a fixed pattern per date, not live availability** (there is no calendar or database behind the form yet). To make them real, replace `takenSlots()` in `src/lib/booking-slots.ts` with a lookup against your calendar or database. The slot hours and time zone are constants at the top of that file. The request is emailed through the same delivery settings as the inquiry form (`POST /api/booking`).
 - `form`: the original project inquiry form.
 
 Set it in `.env.local` and restart the dev server (or rebuild), since it is read on the server. The booking and inquiry flows share `CONTACT_TO_EMAIL` and the Resend/SMTP/webhook settings.

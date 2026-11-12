@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { BookingFieldErrors } from "@/types/booking";
+import { isSlotPast, isSlotTaken, isValidSlot, isValidTimeZone } from "./booking-slots";
 
 /** How far ahead a call can be requested. */
 export const BOOKING_MAX_DAYS_AHEAD = 90;
@@ -61,6 +62,10 @@ export const bookingSchema = z.object({
       if (date.getTime() < min) ctx.addIssue({ code: "custom", message: "That date has already passed. Please choose another day." });
       else if (date.getTime() > max) ctx.addIssue({ code: "custom", message: `Please choose a date within the next ${BOOKING_MAX_DAYS_AHEAD} days.` });
     }),
+  time: z
+    .string({ error: "Please choose a time for your call." })
+    .trim()
+    .refine(isValidSlot, "Please choose a time for your call."),
   fullName: z
     .string({ error: "Please enter your name." })
     .trim()
@@ -73,9 +78,24 @@ export const bookingSchema = z.object({
     .max(200, "Please keep this under 200 characters.")
     .pipe(z.email("Please enter a valid email address, like name@company.com.")),
   company: optionalText(120),
+  /** The visitor's IANA time zone (e.g. "America/New_York"), only used to show them their local time in the email. */
+  timeZone: z
+    .string()
+    .trim()
+    .max(64)
+    .optional()
+    .transform((v) => (v && isValidTimeZone(v) ? v : undefined)),
   companyFax: z.string().optional(),
   startedAt: z.number().optional(),
   submissionId: z.string().max(100).optional(),
+}).superRefine((value, ctx) => {
+  // Only meaningful once both pieces are individually valid (their own errors are reported above).
+  if (!parseIsoDate(value.date) || !isValidSlot(value.time)) return;
+  if (isSlotPast(value.date, value.time)) {
+    ctx.addIssue({ code: "custom", path: ["time"], message: "That time has already passed. Please choose another time." });
+  } else if (isSlotTaken(value.date, value.time)) {
+    ctx.addIssue({ code: "custom", path: ["time"], message: "That time is already taken. Please choose another time." });
+  }
 });
 
 export type BookingData = z.output<typeof bookingSchema>;

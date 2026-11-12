@@ -303,7 +303,15 @@ test("booking calendar: pick a date, then enter details", async ({ page }) => {
 
   await page.locator("[aria-current=date]").focus();
   await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("ArrowRight");
   await page.keyboard.press("Enter");
+
+  // A time is required too. Taken slots are blurred and disabled; only a free one can be picked.
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByRole("alert").filter({ hasText: /choose a time/i })).toBeVisible();
+  await expect(page.locator("[data-time][disabled]").first()).toBeVisible();
+  await expect(page.locator("[data-time][disabled]").first()).toHaveClass(/blur/);
+  await page.locator("[data-time]:not([disabled])").first().click();
   await page.getByRole("button", { name: "Continue" }).click();
 
   await page.getByRole("button", { name: /confirm booking/i }).click();
@@ -314,7 +322,7 @@ test("booking calendar: pick a date, then enter details", async ({ page }) => {
   await page.waitForTimeout(2600); // honest user typing time (spam check)
   await page.getByRole("button", { name: /confirm booking/i }).click();
   await expect(page.getByText(/booking request has been sent/i)).toBeVisible();
-  expect(posted).toMatchObject({ fullName: "Jane Doe", email: "jane@company.com", company: "Acme Ltd" });
+  expect(posted).toMatchObject({ time: expect.stringMatching(/^\d{2}:(00|30)$/), fullName: "Jane Doe", email: "jane@company.com", company: "Acme Ltd" });
 });
 
 test("contact form validates and never fakes success", async ({ page }) => {

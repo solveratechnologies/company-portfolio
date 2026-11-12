@@ -2,6 +2,16 @@ import "server-only";
 import nodemailer from "nodemailer";
 import type { ContactData } from "./validation";
 import { formatBookingDate, type BookingData } from "./booking-validation";
+import {
+  BOOKING_TZ_LABEL,
+  BOOKING_TZ_NAME,
+  formatLocalDate,
+  formatLocalRange,
+  formatSlotRange,
+  formatSlotTime,
+  slotStartMs,
+  timeZoneShortName,
+} from "./booking-slots";
 
 /**
  * Delivery for project inquiries.
@@ -95,19 +105,27 @@ function bookingMessage(data: BookingData): OutboundMessage {
   const { companyFax: _honeypot, startedAt: _startedAt, ...payload } = data;
   void _honeypot;
   void _startedAt;
+  const startMs = slotStartMs(data.date, data.time);
+  // The slot is always booked in PKT; when the visitor's time zone is known, also show them their own local time.
+  const localTime =
+    data.timeZone && startMs !== null
+      ? `${formatLocalDate(startMs, data.timeZone)}, ${formatLocalRange(startMs, data.timeZone)} (${data.timeZone}, ${timeZoneShortName(startMs, data.timeZone)})`
+      : undefined;
   return {
     kind: "booking_request",
-    subject: `New booking request: ${formatBookingDate(data.date)} — ${data.fullName}`,
+    subject: `New booking request: ${formatBookingDate(data.date)}, ${formatSlotTime(data.time)} ${BOOKING_TZ_LABEL} — ${data.fullName}`,
     heading: "New booking request",
     rows: [
       ["Requested date", `${formatBookingDate(data.date)} (${data.date})`],
+      ["Requested time", `${formatSlotRange(data.time)} ${BOOKING_TZ_NAME}`],
+      ...(localTime ? ([["Visitor's local time", localTime]] as [string, string][]) : []),
       ["Name", data.fullName],
       ["Email", data.email],
       ["Company", data.company ?? "—"],
     ],
     replyTo: data.email,
     id: data.submissionId,
-    webhookPayload: payload,
+    webhookPayload: { ...payload, ...(startMs !== null ? { startsAt: new Date(startMs).toISOString() } : {}) },
   };
 }
 

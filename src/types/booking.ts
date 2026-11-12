@@ -1,6 +1,10 @@
 export interface BookingPayload {
   /** Chosen day, `YYYY-MM-DD` (calendar date, no time zone). */
   date: string;
+  /** Start of the 30-minute slot, `HH:mm` (24-hour) in the business time zone (PKT). */
+  time: string;
+  /** The visitor's IANA time zone, so the email can also show their local time. */
+  timeZone?: string;
   fullName: string;
   email: string;
   company?: string;

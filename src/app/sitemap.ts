@@ -1,10 +1,11 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/config/site";
-import { legalStatus } from "@/config/legal";
+import { legalStatus, type LegalPageKey } from "@/config/legal";
 import { getContent } from "@/content";
 import { staticRoutes } from "@/lib/routes";
 
-const LEGAL_ROUTES: readonly string[] = ["/privacy-policy", "/terms", "/cookie-policy"];
+const LEGAL_PAGES: Record<string, LegalPageKey> = { "/privacy-policy": "privacy", "/terms": "terms", "/cookie-policy": "cookie" };
+const LEGAL_ROUTES: readonly string[] = Object.keys(LEGAL_PAGES);
 
 /**
  * Lists only the intended public, indexable pages, as absolute URLs on the
@@ -15,10 +16,10 @@ const LEGAL_ROUTES: readonly string[] = ["/privacy-policy", "/terms", "/cookie-p
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { services, projects, articles } = await getContent();
   const url = (path: string) => `${siteConfig.url}${path === "/" ? "" : path}`;
-  const legalReady = legalStatus().ready;
   const priority = (path: string) => (path === "/" ? 1 : LEGAL_ROUTES.includes(path) ? 0.3 : 0.8);
 
-  const routes = staticRoutes.filter((path) => legalReady || !LEGAL_ROUTES.includes(path));
+  // Each legal page is listed only once its own publication gate is open.
+  const routes = staticRoutes.filter((path) => !(path in LEGAL_PAGES) || legalStatus(LEGAL_PAGES[path]).ready);
 
   return [
     ...routes.map((path) => ({ url: url(path), changeFrequency: "monthly" as const, priority: priority(path) })),

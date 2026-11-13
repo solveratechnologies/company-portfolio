@@ -14,9 +14,11 @@ const allRoutes = [
 
 // Must match the origin the production build was created with (NEXT_PUBLIC_SITE_URL is inlined at build time).
 const ORIGIN = (process.env.NEXT_PUBLIC_SITE_URL?.trim() || "http://localhost:3000").replace(/\/$/, "");
-const LEGAL_ROUTES = ["/privacy-policy", "/terms", "/cookie-policy"];
-const LEGAL_READY = legalStatus().ready;
-const indexableRoutes = allRoutes.filter((route) => LEGAL_READY || !LEGAL_ROUTES.includes(route));
+const LEGAL_PAGES = { "/privacy-policy": "privacy", "/terms": "terms", "/cookie-policy": "cookie" } as const;
+const LEGAL_ROUTES = Object.keys(LEGAL_PAGES) as (keyof typeof LEGAL_PAGES)[];
+// Each legal page has its own publication gate (src/config/legal.ts).
+const legalReady = (route: string) => (route in LEGAL_PAGES ? legalStatus(LEGAL_PAGES[route as keyof typeof LEGAL_PAGES]).ready : true);
+const indexableRoutes = allRoutes.filter((route) => legalReady(route));
 
 function trackErrors(page: Page) {
   const errors: string[] = [];
@@ -74,7 +76,10 @@ test("sitemap and robots use the configured origin and list only public, indexab
   expect(new Set(locs).size, "sitemap has duplicate URLs").toBe(locs.length);
   for (const loc of locs) expect(loc.startsWith(`${ORIGIN}`), `${loc} is not on the configured origin`).toBe(true);
   if (!ORIGIN.includes("localhost")) expect(xml).not.toContain("localhost");
-  if (!LEGAL_READY) for (const route of LEGAL_ROUTES) expect(xml).not.toContain(`<loc>${ORIGIN}${route}</loc>`);
+  for (const route of LEGAL_ROUTES) {
+    if (legalReady(route)) expect(xml).toContain(`<loc>${ORIGIN}${route}</loc>`);
+    else expect(xml).not.toContain(`<loc>${ORIGIN}${route}</loc>`);
+  }
 
   const robots = await (await request.get("/robots.txt")).text();
   expect(robots).toContain(`Sitemap: ${ORIGIN}/sitemap.xml`);
@@ -106,13 +111,50 @@ for (const route of allRoutes) {
   });
 }
 
-test("legal pages are noindex until the owner supplies the facts", async ({ page }) => {
-  test.skip(LEGAL_READY, "legal facts are configured; pages are intentionally indexable");
+test("a legal page is noindex with a template notice until its own facts are supplied and reviewed", async ({ page }) => {
   for (const route of LEGAL_ROUTES) {
     await page.goto(route);
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
-    await expect(page.getByText(/Template notice/)).toBeVisible();
+    if (legalReady(route)) {
+      await expect(page.locator('meta[name="robots"]')).not.toHaveAttribute("content", /noindex/);
+      await expect(page.getByText(/Template notice/)).toHaveCount(0);
+    } else {
+      await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+      await expect(page.getByText(/Template notice/)).toBeVisible();
+    }
   }
+});
+
+test("the contents list highlights the section currently on screen", async ({ page }) => {
+  await page.goto("/privacy-policy");
+  test.skip(!legalReady("/privacy-policy"), "privacy policy is still gated");
+  const current = page.locator("nav a[aria-current='location']");
+  await expect(current).toHaveCount(0);
+  for (const [id, label] of [["data-retention", "14. Data Retention"], ["contact-us", "26. Contact Us"]]) {
+    await page.evaluate((i) => document.getElementById(i)?.scrollIntoView({ behavior: "instant" }), id);
+    await expect(current).toHaveText(label);
+  }
+});
+
+test("terms and conditions show all 32 sections, the governing law and the closing lines", async ({ page }) => {
+  await page.goto("/terms");
+  test.skip(!legalReady("/terms"), "terms are still gated");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Terms and Conditions");
+  await expect(page.getByRole("main").getByRole("heading", { level: 2 })).toHaveCount(32);
+  await expect(page.getByText("Islamic Republic of Pakistan")).toBeVisible();
+  await expect(page.getByText(/\[[^\]]*to be (completed|added|confirmed)\]/)).toHaveCount(0);
+  await expect(page.getByText("All Rights Reserved")).toBeVisible();
+});
+
+test("privacy policy shows the owner's details, all 31 sections and both tables", async ({ page }) => {
+  await page.goto("/privacy-policy");
+  test.skip(!legalReady("/privacy-policy"), "privacy policy is still gated");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Privacy Policy");
+  await expect(page.getByText("Rawalpindi, Pakistan").first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "info@solveratechnologies.com" }).first()).toHaveAttribute("href", "mailto:info@solveratechnologies.com");
+  await expect(page.getByRole("main").getByRole("heading", { level: 2 })).toHaveCount(31);
+  await expect(page.getByRole("table")).toHaveCount(2);
+  await expect(page.getByText(/\[[^\]]*to be (completed|added|confirmed)\]/)).toHaveCount(0);
+  await expect(page.getByText("All Rights Reserved")).toBeVisible();
 });
 
 test("security headers are present and the framework is not advertised", async ({ request }) => {

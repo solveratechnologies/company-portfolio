@@ -37,7 +37,7 @@ All variables are documented in [`.env.example`](./.env.example).
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `NEXT_PUBLIC_SITE_URL` | **Yes, for production builds** | The single authoritative public origin (`https://www.your-domain.com`, no path). Drives canonical URLs, `sitemap.xml`, `robots.txt`, Open Graph and JSON-LD. `next build` **fails with an explicit error** if it is missing or not https (plain `http` is accepted only for `localhost`/`127.0.0.1`). Only in development does it fall back to `http://localhost:3000`. It is inlined at build time, so set it in the build environment. |
-| `LEGAL_*` (6 facts) + `LEGAL_COUNSEL_REVIEWED` | Before indexing legal pages | Owner-supplied legal facts. Until all are set the privacy/terms/cookie pages are `noindex`, show a template notice and are left out of the sitemap. See [Legal pages](#legal-pages). |
+| `LEGAL_*` (optional overrides) | No | Owner facts are recorded in `src/config/legal.ts`. Each legal page is gated separately: until its facts and review are in place it is `noindex`, shows a template notice and is left out of the sitemap. See [Legal pages](#legal-pages). |
 | `CONTACT_CLIENT_IP_HEADER` | Recommended in production | Name of the header **your own proxy/CDN** sets with the real client IP. Without it, client-sent `X-Forwarded-For` is ignored. |
 | `CSP_REPORT_ONLY` | No | `true` ships the CSP as `Content-Security-Policy-Report-Only`. |
 | `NEXT_PUBLIC_CONTACT_EMAIL` / `_PHONE` / `_ADDRESS` | No | Verified contact details. Hidden everywhere when empty. |
@@ -84,17 +84,17 @@ Set it in `.env.local` and restart the dev server (or rebuild), since it is read
 
 ### Legal pages
 
-`/privacy-policy`, `/terms` and `/cookie-policy` are **templates** and contain no invented facts. They stay `noindex`, are excluded from `sitemap.xml` and show a visible "Template notice" until **all** of the following are set (server environment, build time) and `LEGAL_COUNSEL_REVIEWED=true`:
+`/privacy-policy`, `/terms` and `/cookie-policy` each have their **own publication gate**. A page stays `noindex`, is excluded from `sitemap.xml` and shows a visible "Template notice" until the facts it needs are present **and** it is marked as reviewed.
 
-| Variable | Fact the owner must supply |
-| --- | --- |
-| `LEGAL_ENTITY_NAME` | Registered legal business name |
-| `LEGAL_REGISTERED_ADDRESS` | Registered business address |
-| `LEGAL_JURISDICTION` | Governing law / jurisdiction for the Terms |
-| `LEGAL_EFFECTIVE_DATE` | Effective date of the policies |
-| `LEGAL_RETENTION_PERIOD` | How long inquiry data is kept |
-| `LEGAL_SERVICE_PROVIDERS` | Providers that process inquiry data (email/webhook, hosting) |
-| `LEGAL_COUNSEL_REVIEWED` | `true` only after qualified counsel approved the final text |
+The owner's facts and per-page review status live in code, in `src/config/legal.ts` (`OWNER_FACTS`, `OWNER_REVIEWED`), so no Vercel variables are needed. Any `LEGAL_*` environment variable (see `.env.example`) overrides the recorded value, and `LEGAL_COUNSEL_REVIEWED=true` marks every page reviewed.
+
+| Page | Needs | Status |
+| --- | --- | --- |
+| Privacy Policy | entity, address, effective/updated dates, privacy email, 8 retention periods, primary country, 3 practice statements (advertising, sale/sharing, sensitive data), review | live |
+| Terms and Conditions | entity, address, effective/updated dates, contact email, governing law, courts location, review | live |
+| Cookie Policy | effective date, review | gated (review missing) |
+
+The privacy text is built from `src/data/privacy-policy.ts` and the terms text from `src/data/terms.ts`. The EU/UK representative, DPO and phone lines appear only when those facts are set.
 
 The gate is a publication control, **not** legal advice or a compliance certification. If analytics, advertising tags or cookies are added later, update the cookie policy text first.
 
@@ -167,7 +167,7 @@ All content lives in typed files under `src/data/` — no layout changes needed.
 - **Articles** (`articles.ts`): `publishedAt` is intentionally empty. Set an ISO date when an article is actually published — dates and `datePublished` JSON-LD appear automatically. Reading time is calculated from the content.
 - **Testimonials** (`testimonials.ts`): empty, so the homepage shows "What You Can Expect". Add only genuine, client-approved quotes.
 - **Careers** (`app/careers/page.tsx` → `openPositions`): empty; the page says no roles are open.
-- **Legal pages** are templates with a visible notice — they must be completed and reviewed by counsel.
+- **Legal pages**: the Privacy Policy and Terms and Conditions are live (facts in `src/config/legal.ts`). The Cookie Policy is still a template with a visible notice until its review is recorded.
 
 ---
 
@@ -200,7 +200,7 @@ Run on 27 October 2026 on Node 22 (see the Node requirement above), Chromium onl
 2. A contact delivery provider (Resend, SMTP **or** an https webhook), tested end to end on staging.
 3. Verified contact details and social links (optional).
 4. `CONTACT_CLIENT_IP_HEADER` and, on serverless/multi-instance hosting, a shared rate-limit store / CAPTCHA.
-5. Legal pages: the `LEGAL_*` facts and counsel review (see [Legal pages](#legal-pages)) — until then they are `noindex`.
+5. Legal pages: the Cookie Policy needs a review (see [Legal pages](#legal-pages)) — until then it is `noindex`.
 5a. Hosting layer: HTTPS/TLS, HSTS, HTTP→HTTPS and `www`/apex redirects, CDN caching.
 6. Real project screenshots, verified client work and approved testimonials, when available.
 7. Article publication dates once published.

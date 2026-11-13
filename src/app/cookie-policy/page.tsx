@@ -2,7 +2,7 @@ import { pageMetadata } from "@/lib/seo";
 import { legalStatus, fact } from "@/config/legal";
 import { LegalPage } from "@/components/ui/LegalPage";
 
-const status = legalStatus();
+const status = legalStatus("cookie");
 
 export const metadata = pageMetadata({
   title: "Cookie Policy",
@@ -18,6 +18,7 @@ export default function CookiePolicyPage() {
     <LegalPage
       title="Cookie Policy"
       href="/cookie-policy"
+      ready={status.ready}
       intro="What cookies are, which ones this website uses, and how you can control them."
       sections={[
         { title: "What cookies are", paragraphs: ["Cookies are small text files stored by your browser. Similar technologies include local storage and tracking pixels."] },

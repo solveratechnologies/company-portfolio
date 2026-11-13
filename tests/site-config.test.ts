@@ -58,10 +58,35 @@ describe("pageMetadata", () => {
 });
 
 describe("legalStatus", () => {
-  it("is not ready until every owner-supplied fact and the counsel review flag are set", () => {
-    expect(legalStatus({} as NodeJS.ProcessEnv).ready).toBe(false);
-    const env: Record<string, string> = Object.fromEntries(LEGAL_REQUIRED.map((r) => [r.env, "value"]));
-    expect(legalStatus(env as unknown as NodeJS.ProcessEnv).missing).toEqual(["LEGAL_COUNSEL_REVIEWED"]);
-    expect(legalStatus({ ...env, LEGAL_COUNSEL_REVIEWED: "true" } as unknown as NodeJS.ProcessEnv).ready).toBe(true);
+  const env = (values: Record<string, string> = {}) => values as unknown as NodeJS.ProcessEnv;
+  /** An owner with nothing supplied and nothing reviewed, so the gate itself is what is tested. */
+  const nobody = { facts: {}, reviewed: { privacy: false, terms: false, cookie: false } };
+  const supply = (page: "privacy" | "terms" | "cookie") =>
+    Object.fromEntries(LEGAL_REQUIRED.filter((r) => r.pages.includes(page)).map((r) => [r.env, "value"]));
+
+  it("a page is not ready until every fact it needs and its review flag are set", () => {
+    expect(legalStatus("privacy", env(), nobody).ready).toBe(false);
+    expect(legalStatus("privacy", env(supply("privacy")), nobody).missing).toEqual(["LEGAL_COUNSEL_REVIEWED"]);
+    expect(legalStatus("privacy", env({ ...supply("privacy"), LEGAL_COUNSEL_REVIEWED: "true" }), nobody).ready).toBe(true);
+  });
+
+  it("each page has its own gate: another page's facts do not open it", () => {
+    const reviewed = env({ LEGAL_COUNSEL_REVIEWED: "true" });
+    expect(legalStatus("cookie", env({ ...reviewed, LEGAL_EFFECTIVE_DATE: "1 March 2027" }), nobody).ready).toBe(true);
+    expect(legalStatus("terms", env({ ...reviewed, LEGAL_EFFECTIVE_DATE: "1 March 2027" }), nobody).ready).toBe(false);
+    expect(legalStatus("terms", env({ LEGAL_COUNSEL_REVIEWED: "true", ...supply("terms") }), nobody).ready).toBe(true);
+    expect(legalStatus("privacy", env({ ...reviewed, LEGAL_EFFECTIVE_DATE: "1 March 2027" }), nobody).ready).toBe(false);
+    // Terms' own facts (governing law, courts) do not open the privacy page.
+    expect(legalStatus("privacy", env({ ...reviewed, LEGAL_JURISDICTION: "x", LEGAL_COURTS_LOCATION: "y" }), nobody).ready).toBe(false);
+  });
+
+  it("uses the owner's recorded facts and per-page review, and an environment value overrides a recorded fact", () => {
+    // Privacy and Terms are complete and reviewed; Cookie still needs a review.
+    expect(legalStatus("privacy", env()).ready).toBe(true);
+    expect(legalStatus("terms", env()).ready).toBe(true);
+    expect(legalStatus("terms", env({ LEGAL_JURISDICTION: "   " })).facts.jurisdiction).toBe("Islamic Republic of Pakistan");
+    expect(legalStatus("cookie", env()).missing).toEqual(["LEGAL_COUNSEL_REVIEWED"]);
+    expect(legalStatus("privacy", env({ LEGAL_PRIVACY_EMAIL: "privacy@example.com" })).facts.privacyEmail).toBe("privacy@example.com");
+    expect(legalStatus("privacy", env({ LEGAL_PRIVACY_EMAIL: "   " })).facts.privacyEmail).toBe("info@solveratechnologies.com");
   });
 });

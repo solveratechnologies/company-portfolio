@@ -1,66 +1,33 @@
 import { pageMetadata } from "@/lib/seo";
 import { legalStatus, fact } from "@/config/legal";
 import { LegalPage } from "@/components/ui/LegalPage";
+import { privacySections, PRIVACY_SITE_URL } from "@/data/privacy-policy";
 
-const status = legalStatus();
+const status = legalStatus("privacy");
 
 export const metadata = pageMetadata({
   title: "Privacy Policy",
-  description: "How Solvera Technologies collects, uses and protects personal information submitted through this website.",
+  description: "How Solvera Technologies collects, uses, stores, discloses and protects personal information when you use our website or work with us.",
   path: "/privacy-policy",
-  // Unfinished legal pages stay out of search results until the owner supplies the facts (src/config/legal.ts).
+  // An unfinished legal page stays out of search results until its facts are supplied and reviewed (src/config/legal.ts).
   noIndex: !status.ready,
 });
 
 export default function PrivacyPolicyPage() {
-  const { facts } = status;
+  const { facts, ready } = status;
   return (
     <LegalPage
       title="Privacy Policy"
       href="/privacy-policy"
-      intro="How we collect, use and protect personal information when you use this website or contact us."
-      sections={[
-        {
-          title: "Who we are",
-          paragraphs: [
-            `This website is operated by Solvera Technologies (“Solvera”, “we”, “us”). Registered business name: ${fact(facts.entityName, "registered business name to be completed")}. Registered address: ${fact(facts.registeredAddress, "registered address to be completed")}. You can reach us through the contact page.`,
-          ],
-        },
-        {
-          title: "Information we collect",
-          paragraphs: ["We collect information you choose to provide through the project inquiry form, and limited technical information needed to operate and protect the website."],
-          list: [
-            "Inquiry details: name, business email, company, website, service of interest, budget and timeline ranges, and your project description.",
-            "Technical data: IP address and request metadata, used for security and rate limiting.",
-            "Analytics data, only if analytics are enabled and, where required, with your consent.",
-          ],
-        },
-        {
-          title: "How we use information",
-          list: [
-            "To respond to your inquiry and discuss a potential project.",
-            "To protect the website against spam and abuse.",
-            "To understand, in aggregate, how the website is used and improve it (where analytics are enabled).",
-          ],
-          paragraphs: ["We do not sell personal information, and we do not use inquiry details for unrelated marketing without your permission."],
-        },
-        { title: "Legal bases", paragraphs: ["Where data protection laws require a legal basis, we rely on your consent (for example, the inquiry consent checkbox) and our legitimate interest in responding to business enquiries and securing the website."] },
-        {
-          title: "Service providers",
-          paragraphs: [
-            `Inquiries are delivered through an email or workflow provider configured by Solvera, and the website is hosted by a cloud hosting provider. These providers process data on our behalf under their own terms. Providers: ${fact(facts.serviceProviders, "list of providers to be completed")}.`,
-          ],
-        },
-        {
-          title: "Retention",
-          paragraphs: [
-            `We keep inquiry information only as long as needed to respond and, where a project proceeds, for the duration required for that relationship and applicable legal obligations. Retention period for inquiries: ${fact(facts.retentionPeriod, "retention period to be confirmed")}.`,
-          ],
-        },
-        { title: "Your rights", paragraphs: ["Depending on where you live, you may have the right to access, correct, delete or restrict the use of your personal information, and to object to processing or withdraw consent. To make a request, contact us through the contact page."] },
-        { title: "Security", paragraphs: ["We use reasonable technical and organizational measures to protect information, including encrypted connections and limited access. No method of transmission or storage is completely secure."] },
-        { title: "Changes to this policy", paragraphs: [`We may update this policy from time to time. Effective date: ${fact(facts.effectiveDate, "effective date to be added")}. The current version is always the one shown on this page.`] },
+      ready={ready}
+      intro="How Solvera Technologies collects, uses, stores, discloses and protects personal information."
+      meta={[
+        { label: "Effective date", value: fact(facts.effectiveDate, "effective date to be added") },
+        { label: "Last updated", value: fact(facts.lastUpdated, "revision date to be added") },
+        { label: "Website", value: `[${PRIVACY_SITE_URL}](${PRIVACY_SITE_URL})` },
       ]}
+      sections={privacySections(facts)}
+      closing={["**© 2026 Solvera Technologies. All Rights Reserved.**", "End of Global Privacy Policy."]}
     />
   );
 }
